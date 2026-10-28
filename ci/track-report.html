@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Report | RCMRS</title>
+     <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="navbar">
+        <div class="brand">
+    <img src="media/logo.png" alt="Logo">
+    <h2>RCMRS</h2>
+</div>
+        <div class="nav-links">
+            <a href="dashboard.html">Home</a>
+            <a href="submit-report.html">Submit Report</a>
+            <a href="feedback.html">Feedback</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2 class="page-title">Track Your Reports</h2>
+        <p class="page-subtitle">Check the status of every road issue you've submitted.</p>
+
+        <div class="filter-bar">
+            <select id="filterStatus" onchange="renderTable()">
+                <option value="All">All Status</option>
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+            </select>
+            <input type="text" id="searchBox" placeholder="Search by road name..." oninput="renderTable()">
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Request ID</th>
+                        <th>Road Name</th>
+                        <th>Location</th>
+                        <th>Issue Type</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="reportBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+    <script>
+        const user = requireCitizen();
+
+        function renderTable() {
+            if (!user) return;
+            const status = document.getElementById("filterStatus").value;
+            const search = document.getElementById("searchBox").value.toLowerCase();
+
+            const filtered = getReports()
+                .filter(r => r.user_id === user.id)
+                .filter(r => status === "All" || r.status === status)
+                .filter(r => r.road_name.toLowerCase().includes(search));
+
+            const tbody = document.getElementById("reportBody");
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#888;">No reports found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(r => `
+                <tr>
+                    <td>#${r.id}</td>
+                    <td>${r.road_name}</td>
+                    <td>${r.location}</td>
+                    <td>${r.condition_type}</td>
+                    <td><span class="badge ${priorityClass(r.priority)}">${r.priority}</span></td>
+                    <td><span class="badge ${statusClass(r.status)}">${r.status}</span></td>
+                    <td>${r.date}</td>
+                </tr>
+            `).join("");
+        }
+
+        renderTable();
+    </script>
+</body>
+</html>

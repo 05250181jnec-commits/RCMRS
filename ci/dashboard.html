@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Citizen Dashboard | RCMRS</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="navbar">
+        <div class="brand">
+    <img src="media/logo.png" alt="Logo">
+    <h2>RCMRS</h2>
+</div>
+        <div class="nav-links">
+            <a href="dashboard.html">Home</a>
+            <a href="submit-report.html">Submit Report</a>
+            <a href="track-report.html">Track Report</a>
+            <a href="feedback.html">Feedback</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2 class="page-title">Report, Track and Improve Roads Together</h2>
+        <p class="page-subtitle">Together, let's keep our roads safe, clean, and well maintained. Welcome, <b id="userName"></b>!</p>
+
+        <!-- Quick actions -->
+        <div class="dashboard-grid">
+            <a href="submit-report.html">
+                <div class="card" style="border-top: 5px solid #3498db;">
+                    <div class="icon">📝</div>
+                    <h3>Submit a Report</h3>
+                    <p>Upload photos, add location and issue details.</p>
+                </div>
+            </a>
+            <a href="track-report.html">
+                <div class="card" style="border-top: 5px solid #e67e22;">
+                    <div class="icon">🔍</div>
+                    <h3>Track a Report</h3>
+                    <p>Check the status of your submitted issues.</p>
+                </div>
+            </a>
+            <a href="feedback.html">
+                <div class="card" style="border-top: 5px solid #2ecc71;">
+                    <div class="icon">⭐⭐⭐</div>
+                    <h3>Give Your Honest Feedback</h3>
+                    <p>Rate the service after repairs are completed.</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Report status summary -->
+        <h2 class="page-title" style="margin-top: 2.5rem; font-size: 1.3rem;">Your Report Summary</h2>
+        <div class="dashboard-grid" style="margin-top: 1rem;">
+            <div class="card"><h3 id="pendingCount">0</h3><p>Pending</p></div>
+            <div class="card"><h3 id="progressCount">0</h3><p>In Progress</p></div>
+            <div class="card"><h3 id="completedCount">0</h3><p>Completed</p></div>
+            <div class="card"><h3 id="criticalCount">0</h3><p>Priority Alerts</p></div>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+    <script>
+        const user = requireCitizen();
+        if (user) {
+            document.getElementById("userName").textContent = user.name;
+            const myReports = getReports().filter(r => r.user_id === user.id);
+            document.getElementById("pendingCount").textContent   = myReports.filter(r => r.status === "Pending").length;
+            document.getElementById("progressCount").textContent  = myReports.filter(r => r.status === "In Progress").length;
+            document.getElementById("completedCount").textContent = myReports.filter(r => r.status === "Completed").length;
+            document.getElementById("criticalCount").textContent  = myReports.filter(r => r.priority === "Critical").length;
+        }
+    </script>
+</body>
+</html>

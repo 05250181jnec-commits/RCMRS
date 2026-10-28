@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Report | RCMRS</title>
+     <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="navbar">
+        <div class="brand">
+    <img src="media/logo.png" alt="Logo">
+    <h2>RCMRS</h2>
+</div>
+        <div class="nav-links">
+            <a href="dashboard.html">Home</a>
+            <a href="track-report.html">Track Report</a>
+            <a href="feedback.html">Feedback</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="auth-card" style="max-width: 650px;">
+            <h2>Submit a Road Maintenance Request</h2>
+            <p class="page-subtitle" style="text-align:center;">
+                Help us identify and fix road problems quickly.
+            </p>
+
+            <form id="reportForm">
+                <div class="form-group">
+                    <label>Road Name</label>
+                    <input type="text" id="road_name" placeholder="e.g. Paro Highway" required>
+                </div>
+                <div class="form-group">
+                    <label>Location</label>
+                    <input type="text" id="location" placeholder="e.g. Near Thimphu Gate" required>
+                </div>
+                <div class="form-group">
+                    <label>Road Type</label>
+                    <select id="road_type">
+                        <option>Highway</option>
+                        <option>Village Road</option>
+                        <option>Urban Road</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Issue Type</label>
+                    <select id="condition_type">
+                        <option>Potholes</option>
+                        <option>Cracks</option>
+                        <option>Road Block</option>
+                        <option>Drainage Blockage</option>
+                        <option>Landslide</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Priority</label>
+                    <select id="priority">
+                        <option>Low</option>
+                        <option selected>Medium</option>
+                        <option>High</option>
+                        <option>Critical</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="description" rows="4" placeholder="Describe the issue..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Upload Photo</label>
+                    <input type="file" id="image" accept="image/*">
+                </div>
+                <button type="submit" class="btn btn-orange">Submit Report</button>
+                <div id="msg"></div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+    <script>
+        const user = requireCitizen();
+
+        document.getElementById("reportForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            if (!user) return;
+
+            const reports = getReports();
+            const newReport = {
+                id: 100 + reports.length + 1,
+                road_name: document.getElementById("road_name").value.trim(),
+                location: document.getElementById("location").value.trim(),
+                road_type: document.getElementById("road_type").value,
+                condition_type: document.getElementById("condition_type").value,
+                priority: document.getElementById("priority").value,
+                description: document.getElementById("description").value.trim(),
+                image: document.getElementById("image").files[0]?.name || "",
+                status: "Pending",
+                user_id: user.id,
+                date: new Date().toISOString().split("T")[0]
+            };
+            reports.push(newReport);
+            saveReports(reports);
+
+            document.getElementById("msg").innerHTML =
+                `<div class="alert alert-success">✅ Report #${newReport.id} submitted successfully!</div>`;
+            setTimeout(() => window.location.href = "track-report.html", 1300);
+        });
+    </script>
+</body>
+</html>

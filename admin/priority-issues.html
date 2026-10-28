@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Priority Issues | RCMRS Admin</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="navbar">
+        <div class="brand">
+    <img src="media/logo.png" alt="Logo">
+    <h2>RCMRS</h2>
+</div>
+        <div class="nav-links">
+            <a href="dashboard.html">Home</a>
+            <a href="work-delegation.html">Delegation</a>
+            <a href="user-management.html">Users</a>
+            <a href="geography-map.html">Map</a>
+            <a href="priority-issues.html">Priority</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2 class="page-title">Priority Issues</h2>
+        <p class="page-subtitle">Issues grouped by severity so urgent cases get fixed first.</p>
+
+        <div class="dashboard-grid" style="margin-bottom: 2rem;">
+            <div class="card" style="border-top: 5px solid #e74c3c;"><h3 id="countCritical">0</h3><p>🚨 Critical</p></div>
+            <div class="card" style="border-top: 5px solid #e67e22;"><h3 id="countHigh">0</h3><p>⚠️ High</p></div>
+            <div class="card" style="border-top: 5px solid #f1c40f;"><h3 id="countMedium">0</h3><p>🔔 Medium</p></div>
+            <div class="card" style="border-top: 5px solid #95a5a6;"><h3 id="countLow">0</h3><p>ℹ️ Low</p></div>
+        </div>
+
+        <div id="groups"></div>
+    </div>
+
+    <script>
+        const reports = JSON.parse(localStorage.getItem("reports")) || [];
+        const groups = {
+            "Critical": reports.filter(r => r.priority === "Critical"),
+            "High": reports.filter(r => r.priority === "High"),
+            "Medium": reports.filter(r => r.priority === "Medium"),
+            "Low": reports.filter(r => r.priority === "Low")
+        };
+
+        document.getElementById("countCritical").textContent = groups["Critical"].length;
+        document.getElementById("countHigh").textContent = groups["High"].length;
+        document.getElementById("countMedium").textContent = groups["Medium"].length;
+        document.getElementById("countLow").textContent = groups["Low"].length;
+
+        const container = document.getElementById("groups");
+        const icons = { Critical: "🚨", High: "⚠️", Medium: "🔔", Low: "ℹ️" };
+
+        Object.entries(groups).forEach(([level, list]) => {
+            if (list.length === 0) return;
+            const html = `
+                <h2 class="page-title" style="margin-top: 2rem; font-size: 1.2rem;">${icons[level]} ${level} Priority (${list.length})</h2>
+                <div class="table-wrapper" style="margin-top: 1rem;">
+                    <table>
+                        <thead>
+                            <tr><th>ID</th><th>Road</th><th>Location</th><th>Issue</th><th>Status</th><th>Date</th></tr>
+                        </thead>
+                        <tbody>
+                            ${list.map(r => `
+                                <tr>
+                                    <td>#${r.id}</td>
+                                    <td>${r.road_name}</td>
+                                    <td>${r.location}</td>
+                                    <td>${r.condition_type}</td>
+                                    <td><span class="badge badge-${r.status.toLowerCase().replace(' ', '')}">${r.status}</span></td>
+                                    <td>${r.date}</td>
+                                </tr>
+                            `).join("")}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            container.insertAdjacentHTML("beforeend", html);
+        });
+
+        function logout() {
+            localStorage.removeItem("currentUserId");
+            window.location.href = "../index.html";
+        }
+    </script>
+</body>
+</html>

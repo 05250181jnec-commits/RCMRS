@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management | RCMRS Admin</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="navbar">
+        <div class="brand">
+    <img src="media/logo.png" alt="Logo">
+    <h2>RCMRS</h2>
+</div>
+        <div class="nav-links">
+            <a href="dashboard.html">Home</a>
+            <a href="work-delegation.html">Delegation</a>
+            <a href="user-management.html">Users</a>
+            <a href="geography-map.html">Map</a>
+            <a href="priority-issues.html">Priority</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2 class="page-title">User Management</h2>
+        <p class="page-subtitle">Manage all registered users, roles, and account status.</p>
+
+        <div class="filter-bar">
+            <select id="filterRole" onchange="renderUsers()">
+                <option value="All">All Roles</option>
+                <option value="Citizen">Citizen</option>
+                <option value="Maintenance">Maintenance</option>
+                <option value="Admin">Admin</option>
+            </select>
+            <input type="text" id="searchUser" placeholder="Search by name or email..." oninput="renderUsers()">
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="usersBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function getUsers() { return JSON.parse(localStorage.getItem("users")) || []; }
+        function saveUsers(u) { localStorage.setItem("users", JSON.stringify(u)); }
+
+        function renderUsers() {
+            const role = document.getElementById("filterRole").value;
+            const search = document.getElementById("searchUser").value.toLowerCase();
+            const users = getUsers();
+
+            const filtered = users
+                .filter(u => role === "All" || u.role === role)
+                .filter(u => u.name.toLowerCase().includes(search) || u.email.toLowerCase().includes(search));
+
+            const tbody = document.getElementById("usersBody");
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No users found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(u => `
+                <tr>
+                    <td>#${u.id}</td>
+                    <td>${u.name}</td>
+                    <td>${u.email}</td>
+                    <td>${u.phone}</td>
+                    <td>
+                        <select onchange="changeRole(${u.id}, this.value)">
+                            <option ${u.role === "Citizen" ? "selected" : ""}>Citizen</option>
+                            <option ${u.role === "Maintenance" ? "selected" : ""}>Maintenance</option>
+                            <option ${u.role === "Admin" ? "selected" : ""}>Admin</option>
+                        </select>
+                    </td>
+                    <td><span class="badge badge-completed">Active</span></td>
+                    <td>
+                        <button class="btn btn-red" style="padding:6px 12px;width:auto;font-size:0.8rem;" onclick="deleteUser(${u.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join("");
+        }
+
+        function changeRole(id, role) {
+            const users = getUsers();
+            const u = users.find(x => x.id === id);
+            if (u) {
+                u.role = role;
+                saveUsers(users);
+                renderUsers();
+            }
+        }
+
+        function deleteUser(id) {
+            if (id == localStorage.getItem("currentUserId")) {
+                alert("You cannot delete your own account.");
+                return;
+            }
+            if (!confirm("Are you sure you want to delete this user?")) return;
+            const users = getUsers().filter(u => u.id !== id);
+            saveUsers(users);
+            renderUsers();
+        }
+
+        function logout() {
+            localStorage.removeItem("currentUserId");
+            window.location.href = "../index.html";
+        }
+
+        renderUsers();
+    </script>
+</body>
+</html>

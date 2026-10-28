@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback | RCMRS</title>
+     <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="navbar">
+        <div class="brand">
+    <img src="media/logo.png" alt="Logo">
+    <h2>RCMRS</h2>
+</div>
+        <div class="nav-links">
+            <a href="dashboard.html">Home</a>
+            <a href="submit-report.html">Submit Report</a>
+            <a href="track-report.html">Track Report</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2 class="page-title">Share Your Feedback</h2>
+        <p class="page-subtitle">Rate completed maintenance services and help us improve.</p>
+
+        <!-- Summary cards -->
+        <div class="feedback-grid">
+            <div class="card" style="border-top: 5px solid #f1c40f;">
+                <div class="icon">⭐</div>
+                <h3 id="avgRating">0/5</h3>
+                <p>Average Rating</p>
+            </div>
+            <div class="card" style="border-top: 5px solid #2ecc71;">
+                <div class="icon">📊</div>
+                <h3 id="totalFeedback">0</h3>
+                <p>Total Feedback</p>
+            </div>
+            <div class="card" style="border-top: 5px solid #3498db;">
+                <div class="icon">✅</div>
+                <h3 id="positivePct">0%</h3>
+                <p>Positive Reviews</p>
+            </div>
+        </div>
+
+        <!-- Feedback form -->
+        <div class="auth-card" style="max-width: 700px; margin-top: 1rem;">
+            <h2 style="font-size: 1.2rem;">Write Your Feedback</h2>
+
+            <form id="feedbackForm">
+                <div class="form-group">
+                    <label>Select Completed Report</label>
+                    <select id="requestId" required>
+                        <option value="">-- Choose a completed report --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Your Rating</label>
+                    <div class="star-rating" id="starRating">
+                        <span data-value="1">★</span>
+                        <span data-value="2">★</span>
+                        <span data-value="3">★</span>
+                        <span data-value="4">★</span>
+                        <span data-value="5">★</span>
+                    </div>
+                    <input type="hidden" id="rating" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label>Comment</label>
+                    <textarea id="comment" rows="4" placeholder="Tell us about the repair work..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn">Submit Feedback</button>
+                <div id="msg"></div>
+            </form>
+        </div>
+
+        <!-- Past feedback -->
+        <h2 class="page-title" style="margin-top: 2.5rem; font-size: 1.2rem;">Your Previous Feedback</h2>
+        <div class="table-wrapper" style="margin-top: 1rem;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Request ID</th>
+                        <th>Rating</th>
+                        <th>Comment</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="historyBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+    <script>
+        const user = requireCitizen();
+        let selectedRating = 0;
+
+        // Populate completed reports in the dropdown
+        function populateCompletedReports() {
+            if (!user) return;
+            const completed = getReports().filter(r => r.user_id === user.id && r.status === "Completed");
+            const sel = document.getElementById("requestId");
+            completed.forEach(r => {
+                const opt = document.createElement("option");
+                opt.value = r.id;
+                opt.textContent = `#${r.id} – ${r.road_name} (${r.condition_type})`;
+                sel.appendChild(opt);
+            });
+
+            if (completed.length === 0) {
+                sel.innerHTML = `<option value="">No completed reports yet</option>`;
+            }
+        }
+
+        // Star click handler
+        document.querySelectorAll("#starRating span").forEach(star => {
+            star.addEventListener("click", function () {
+                selectedRating = parseInt(this.dataset.value);
+                document.getElementById("rating").value = selectedRating;
+                document.querySelectorAll("#starRating span").forEach(s => {
+                    s.classList.toggle("active", parseInt(s.dataset.value) <= selectedRating);
+                });
+            });
+        });
+
+        // Submit feedback
+        document.getElementById("feedbackForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            const requestId = document.getElementById("requestId").value;
+            const comment   = document.getElementById("comment").value.trim();
+
+            if (!requestId) {
+                document.getElementById("msg").innerHTML =
+                    `<div class="alert alert-error">Please choose a completed report.</div>`;
+                return;
+            }
+            if (selectedRating < 1) {
+                document.getElementById("msg").innerHTML =
+                    `<div class="alert alert-error">Please give a star rating.</div>`;
+                return;
+            }
+
+            const fb = getFeedback();
+            fb.push({
+                id: Date.now(),
+                request_id: parseInt(requestId),
+                user_id: user.id,
+                rating: selectedRating,
+                comment: comment,
+                date: new Date().toISOString().split("T")[0]
+            });
+            saveFeedback(fb);
+
+            document.getElementById("msg").innerHTML =
+                `<div class="alert alert-success">🎉 Thank you for your feedback!</div>`;
+
+            // Reset form
+            document.getElementById("feedbackForm").reset();
+            selectedRating = 0;
+            document.getElementById("rating").value = 0;
+            document.querySelectorAll("#starRating span").forEach(s => s.classList.remove("active"));
+
+            renderAll();
+        });
+
+        // Render summary + history
+        function renderAll() {
+            const fb = getFeedback();
+
+            // Summary
+            const total = fb.length;
+            const avg   = total ? (fb.reduce((s, f) => s + f.rating, 0) / total).toFixed(1) : 0;
+            const pos   = total ? Math.round((fb.filter(f => f.rating >= 4).length / total) * 100) : 0;
+
+            document.getElementById("avgRating").textContent     = avg + "/5";
+            document.getElementById("totalFeedback").textContent = total;
+            document.getElementById("positivePct").textContent   = pos + "%";
+
+            // History (only this user's feedback)
+            const mine = fb.filter(f => f.user_id === user.id).reverse();
+            const tbody = document.getElementById("historyBody");
+            if (mine.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#888;">No feedback submitted yet.</td></tr>`;
+            } else {
+                tbody.innerHTML = mine.map(f => `
+                    <tr>
+                        <td>#${f.request_id}</td>
+                        <td>${"★".repeat(f.rating)}${"☆".repeat(5 - f.rating)}</td>
+                        <td>${f.comment}</td>
+                        <td>${f.date}</td>
+                    </tr>
+                `).join("");
+            }
+        }
+
+        populateCompletedReports();
+        renderAll();
+    </script>
+</body>
+</html>

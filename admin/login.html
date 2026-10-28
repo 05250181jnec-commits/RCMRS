@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login | RCMRS</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="navbar">
+        <div class="brand">
+    <img src="media/logo.png" alt="Logo">
+    <h2>RCMRS</h2>
+</div>
+        <a href="../index.html">Citizen Portal</a>
+        <a href="../maintenance/login.html">Maintenance Portal</a>
+        </div>
+    </div>
+
+    <div class="auth-card">
+        <h2>Administrator Login</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Admin Email</label>
+                <input type="email" id="email" placeholder="sangay@rcmrs.bt" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="••••" required>
+            </div>
+            <button type="submit" class="btn" style="background: #e74c3c;">Login as Admin</button>
+            <div id="msg"></div>
+        </form>
+        <p style="text-align:center; margin-top:1rem; font-size:0.78rem; color:#999;">
+            Demo: sangay@rcmrs.bt / 1234
+        </p>
+    </div>
+
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            const email = document.getElementById("email").value.trim();
+            const pass  = document.getElementById("password").value;
+            const msg   = document.getElementById("msg");
+
+            if ((email === "sangay@rcmrs.bt" || email === "kinley@rcmrs.bt") && pass === "1234") {
+                localStorage.setItem("currentUserId", email === "sangay@rcmrs.bt" ? 3 : 4);
+                window.location.href = "dashboard.html";
+            } else {
+                msg.innerHTML = `<div class="alert alert-error">Invalid credentials. Use: sangay@rcmrs.bt / 1234</div>`;
+            }
+        });
+    </script>
+</body>
+</html>

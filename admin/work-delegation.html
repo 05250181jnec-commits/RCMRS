@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Delegation | RCMRS Admin</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="navbar">
+        <div class="brand">
+    <img src="media/logo.png" alt="Logo">
+    <h2>RCMRS</h2>
+</div>
+        <div class="nav-links">
+            <a href="dashboard.html">Home</a>
+            <a href="work-delegation.html">Delegation</a>
+            <a href="user-management.html">Users</a>
+            <a href="geography-map.html">Map</a>
+            <a href="priority-issues.html">Priority</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2 class="page-title">Work Delegation</h2>
+        <p class="page-subtitle">Review reports, change status, and assign contractors.</p>
+
+        <div class="dashboard-grid" style="margin-bottom: 2rem;">
+            <div class="card" style="border-top: 5px solid #3498db;">
+                <h3 id="assignedCount">0</h3><p>Assigned</p>
+            </div>
+            <div class="card" style="border-top: 5px solid #e67e22;">
+                <h3 id="unassignedCount">0</h3><p>Unassigned</p>
+            </div>
+            <div class="card" style="border-top: 5px solid #2ecc71;">
+                <h3 id="completedTaskCount">0</h3><p>Completed</p>
+            </div>
+            <div class="card" style="border-top: 5px solid #e74c3c;">
+                <h3 id="overdueCount">0</h3><p>Overdue</p>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Road Name</th>
+                        <th>Issue Type</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Assign Contractor</th>
+                        <th>Update Status</th>
+                    </tr>
+                </thead>
+                <tbody id="reportsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const CONTRACTORS = ["Highlight Ltd", "CDCL Ltd", "PWD", "Thromde", "Unassigned"];
+        
+        function getData() {
+            return {
+                reports: JSON.parse(localStorage.getItem("reports")) || [],
+                tasks: JSON.parse(localStorage.getItem("tasks")) || []
+            };
+        }
+        function saveData(reports, tasks) {
+            localStorage.setItem("reports", JSON.stringify(reports));
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+        }
+
+        function render() {
+            const { reports, tasks } = getData();
+            
+            // Stats
+            document.getElementById("assignedCount").textContent = tasks.filter(t => t.status === "Assigned").length;
+            document.getElementById("unassignedCount").textContent = tasks.filter(t => t.status === "Unassigned").length;
+            document.getElementById("completedTaskCount").textContent = tasks.filter(t => t.status === "Completed").length;
+            
+            const today = new Date().toISOString().split("T")[0];
+            document.getElementById("overdueCount").textContent = tasks.filter(t => t.deadline < today && t.status !== "Completed").length;
+
+            // Table
+            const tbody = document.getElementById("reportsBody");
+            if (reports.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No reports yet.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = reports.map(r => {
+                const task = tasks.find(t => t.report_id === r.id);
+                const currentContractor = task ? task.contractor : "Unassigned";
+
+                return `
+                    <tr>
+                        <td>#${r.id}</td>
+                        <td>${r.road_name}</td>
+                        <td>${r.condition_type}</td>
+                        <td><span class="badge badge-${r.priority.toLowerCase()}">${r.priority}</span></td>
+                        <td><span class="badge badge-${r.status.toLowerCase().replace(' ', '')}">${r.status}</span></td>
+                        <td>
+                            <select onchange="assignContractor(${r.id}, this.value)">
+                                ${CONTRACTORS.map(c => `<option ${c === currentContractor ? "selected" : ""}>${c}</option>`).join("")}
+                            </select>
+                        </td>
+                        <td>
+                            <select onchange="updateStatus(${r.id}, this.value)">
+                                <option ${r.status === "Pending" ? "selected" : ""}>Pending</option>
+                                <option ${r.status === "In Progress" ? "selected" : ""}>In Progress</option>
+                                <option ${r.status === "Completed" ? "selected" : ""}>Completed</option>
+                            </select>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+        }
+
+        function assignContractor(reportId, contractor) {
+            const { reports, tasks } = getData();
+            let task = tasks.find(t => t.report_id === reportId);
+
+            if (contractor === "Unassigned") {
+                if (task) task.status = "Unassigned";
+            } else {
+                if (task) {
+                    task.contractor = contractor;
+                    if (task.status !== "Completed") task.status = "Assigned";
+                } else {
+                    tasks.push({
+                        id: "RC" + (300 + tasks.length),
+                        report_id: reportId,
+                        contractor: contractor,
+                        deadline: new Date(Date.now() + 15 * 864e5).toISOString().split("T")[0],
+                        status: "Assigned",
+                        priority: reports.find(r => r.id === reportId)?.priority || "Medium"
+                    });
+                }
+            }
+            saveData(reports, tasks);
+            render();
+        }
+
+        function updateStatus(reportId, status) {
+            const { reports, tasks } = getData();
+            const r = reports.find(x => x.id === reportId);
+            if (r) {
+                r.status = status;
+                const t = tasks.find(x => x.report_id === reportId);
+                if (t && status === "Completed") t.status = "Completed";
+                
+                saveData(reports, tasks);
+                render();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem("currentUserId");
+            window.location.href = "../index.html";
+        }
+
+        render();
+    </script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geography Map | RCMRS Admin</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        #map { height: 500px; border-radius: 10px; margin-top: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .legend { background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-top: 1.2rem; font-size: 0.9rem; }
+        .legend span { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="brand">
+    <img src="media/logo.png" alt="Logo">
+    <h2>RCMRS</h2>
+</div>
+        <div class="nav-links">
+            <a href="dashboard.html">Home</a>
+            <a href="work-delegation.html">Delegation</a>
+            <a href="user-management.html">Users</a>
+            <a href="geography-map.html">Map</a>
+            <a href="priority-issues.html">Priority</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2 class="page-title">Geography Map View</h2>
+        <p class="page-subtitle">Real-time visualization of reported road issues across Bhutan.</p>
+
+        <div class="dashboard-grid" style="margin-bottom: 1.5rem;">
+            <div class="card" style="border-top: 5px solid #e74c3c;"><h3 id="c1">0</h3><p>Critical</p></div>
+            <div class="card" style="border-top: 5px solid #e67e22;"><h3 id="c2">0</h3><p>High</p></div>
+            <div class="card" style="border-top: 5px solid #f1c40f;"><h3 id="c3">0</h3><p>Medium</p></div>
+            <div class="card" style="border-top: 5px solid #95a5a6;"><h3 id="c4">0</h3><p>Low</p></div>
+        </div>
+
+        <div id="map"></div>
+        <div class="legend">
+            <b>Legend:</b>
+            <span style="background:#e74c3c;"></span> Critical &nbsp;
+            <span style="background:#e67e22;"></span> High &nbsp;
+            <span style="background:#f1c40f;"></span> Medium &nbsp;
+            <span style="background:#95a5a6;"></span> Low
+        </div>
+    </div>
+
+    <script>
+        const LOCATIONS = {
+            "Thimphu": [27.4728, 89.6390], "Paro": [27.4287, 89.4163], "Trongsa": [27.5024, 90.5072], 
+            "Zhemgang": [27.2138, 90.6547], "Gelephu": [26.8706, 90.4856], "Chukha": [27.0710, 89.5340], 
+            "Samtse": [26.8990, 89.0990], "Bumthang": [27.5513, 90.7529], "Dewathang": [26.8597, 91.4856], "Trashigang": [27.3333, 91.5500]
+        };
+
+        const reports = JSON.parse(localStorage.getItem("reports")) || [];
+        document.getElementById("c1").textContent = reports.filter(r => r.priority === "Critical").length;
+        document.getElementById("c2").textContent = reports.filter(r => r.priority === "High").length;
+        document.getElementById("c3").textContent = reports.filter(r => r.priority === "Medium").length;
+        document.getElementById("c4").textContent = reports.filter(r => r.priority === "Low").length;
+
+        const map = L.map('map').setView([27.5, 90.4], 8);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+
+        const colors = { Critical: "#e74c3c", High: "#e67e22", Medium: "#f1c40f", Low: "#95a5a6" };
+
+        reports.forEach(r => {
+            const coords = LOCATIONS[r.location];
+            if (!coords) return;
+            L.circleMarker(coords, { radius: 10, fillColor: colors[r.priority] || "#3498db", color: "#fff", weight: 2, fillOpacity: 0.9 })
+             .addTo(map).bindPopup(`<b>#${r.id} – ${r.road_name}</b><br><b>Location:</b> ${r.location}<br><b>Issue:</b> ${r.condition_type}<br><b>Priority:</b> ${r.priority}<br><b>Status:</b> ${r.status}`);
+        });
+
+        function logout() {
+            localStorage.removeItem("currentUserId");
+            window.location.href = "../index.html";
+        }
+    </script>
+</body>
+</html>

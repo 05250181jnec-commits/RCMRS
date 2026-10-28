@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance Login | RCMRS</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="navbar">
+        <div class="brand">
+    <img src="media/logo.png" alt="Logo">
+    <h2>RCMRS</h2>
+</div>
+        <div class="nav-links">
+            <a href="index.html">Citizen Portal</a>
+        </div>
+    </div>
+
+    <div class="auth-card">
+        <h2>Maintenance Team Login</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Team Email</label>
+                <input type="email" id="email" placeholder="sonam@rcmrs.bt" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="••••" required>
+            </div>
+            <button type="submit" class="btn btn-green">Login</button>
+            <div id="msg"></div>
+        </form>
+        <p style="text-align:center; margin-top:1rem; font-size:0.78rem; color:#999;">
+            Demo accounts:<br>
+            sonam@rcmrs.bt / 1234<br>
+            dorji@rcmrs.bt / 1234<br>
+            rinchen@rcmrs.bt / 1234
+        </p>
+    </div>
+
+    <script src="js/script.js"></script>
+        <script src="../js/script.js"></script>
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            const email = document.getElementById("email").value.trim();
+            const pass  = document.getElementById("password").value;
+            const msg   = document.getElementById("msg");
+
+            // TEMPORARY HARDCODE FOR TESTING
+            if (email === "sonam@rcmrs.bt" && pass === "1234") {
+                localStorage.setItem("currentUserId", 2); // Sonam Tenzin's ID
+                window.location.href = "dashboard.html";
+            } else if (email === "sangay@rcmrs.bt" && pass === "1234") {
+                localStorage.setItem("currentUserId", 3); // Admin
+                window.location.href = "../admin/dashboard.html";
+            } else {
+                msg.innerHTML = `<div class="alert alert-error">Invalid credentials.</div>`;
+            }
+        });
+    </script>
+</body>
+</html>

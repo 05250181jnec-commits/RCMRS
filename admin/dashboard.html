@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | RCMRS</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="navbar">
+        <div class="brand">
+    <img src="media/logo.png" alt="Logo">
+    <h2>RCMRS</h2>
+</div>
+        <div class="nav-links">
+            <a href="dashboard.html">Home</a>
+            <a href="work-delegation.html">Delegation</a>
+            <a href="user-management.html">Users</a>
+            <a href="geography-map.html">Map</a>
+            <a href="priority-issues.html">Priority</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2 class="page-title">System Overview</h2>
+        <p class="page-subtitle">Welcome back, Administrator.</p>
+
+        <div class="dashboard-grid">
+            <div class="card" style="border-top: 5px solid #3498db;">
+                <div class="icon">📋</div>
+                <h3 id="totalReports">0</h3>
+                <p>Total Reports</p>
+            </div>
+            <div class="card" style="border-top: 5px solid #e67e22;">
+                <div class="icon">⏳</div>
+                <h3 id="pendingReports">0</h3>
+                <p>Pending Review</p>
+            </div>
+            <div class="card" style="border-top: 5px solid #e74c3c;">
+                <div class="icon">🚨</div>
+                <h3 id="criticalReports">0</h3>
+                <p>Critical Issues</p>
+            </div>
+            <div class="card" style="border-top: 5px solid #2ecc71;">
+                <div class="icon">✅</div>
+                <h3 id="completedReports">0</h3>
+                <p>Completed</p>
+            </div>
+        </div>
+
+        <h2 class="page-title" style="margin-top: 3rem; font-size: 1.3rem;">Admin Actions</h2>
+        <div class="dashboard-grid" style="margin-top: 1rem;">
+            <a href="work-delegation.html">
+                <div class="card" style="border-top: 5px solid #3498db;">
+                    <div class="icon">📋</div>
+                    <h3>View & Assign</h3>
+                    <p>Review reports and assign contractors.</p>
+                </div>
+            </a>
+            <a href="geography-map.html">
+                <div class="card" style="border-top: 5px solid #2ecc71;">
+                    <div class="icon">🗺️</div>
+                    <h3>Geography Map</h3>
+                    <p>Visualize issues across Bhutan.</p>
+                </div>
+            </a>
+            <a href="user-management.html">
+                <div class="card" style="border-top: 5px solid #9b59b6;">
+                    <div class="icon">⚙️</div>
+                    <h3>User Management</h3>
+                    <p>Manage roles and access.</p>
+                </div>
+            </a>
+            <a href="priority-issues.html">
+                <div class="card" style="border-top: 5px solid #f1c40f;">
+                    <div class="icon">🚦</div>
+                    <h3>Priority Issues</h3>
+                    <p>Urgent cases by severity.</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Self-contained data reader so it doesn't fail
+        const data = JSON.parse(localStorage.getItem("reports")) || [];
+        document.getElementById("totalReports").textContent = data.length;
+        document.getElementById("pendingReports").textContent = data.filter(r => r.status === "Pending").length;
+        document.getElementById("criticalReports").textContent = data.filter(r => r.priority === "Critical").length;
+        document.getElementById("completedReports").textContent = data.filter(r => r.status === "Completed").length;
+
+        function logout() {
+            localStorage.removeItem("currentUserId");
+            window.location.href = "../index.html";
+        }
+    </script>
+</body>
+</html>
